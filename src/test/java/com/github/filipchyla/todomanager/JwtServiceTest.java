@@ -1,6 +1,6 @@
 package com.github.filipchyla.todomanager;
 
-import com.github.filipchyla.todomanager.auth.JwtService;
+import com.github.filipchyla.todomanager.security.service.JwtService;
 import com.github.filipchyla.todomanager.user.User;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
