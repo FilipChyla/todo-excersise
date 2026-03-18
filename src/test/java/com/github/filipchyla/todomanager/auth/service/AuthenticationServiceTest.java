@@ -1,9 +1,8 @@
-package com.github.filipchyla.todomanager;
+package com.github.filipchyla.todomanager.auth.service;
 
 import com.github.filipchyla.todomanager.auth.dto.AuthenticationRequest;
 import com.github.filipchyla.todomanager.auth.dto.AuthenticationResponse;
 import com.github.filipchyla.todomanager.auth.dto.RegisterRequest;
-import com.github.filipchyla.todomanager.auth.service.AuthenticationService;
 import com.github.filipchyla.todomanager.security.service.JwtService;
 import com.github.filipchyla.todomanager.user.User;
 import com.github.filipchyla.todomanager.user.UserRepository;

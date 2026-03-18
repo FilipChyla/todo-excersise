@@ -1,7 +1,5 @@
-package com.github.filipchyla.todomanager;
+package com.github.filipchyla.todomanager.user;
 
-import com.github.filipchyla.todomanager.user.User;
-import com.github.filipchyla.todomanager.user.UserRepository;
 import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

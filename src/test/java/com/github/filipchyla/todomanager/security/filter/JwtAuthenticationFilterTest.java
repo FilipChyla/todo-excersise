@@ -1,6 +1,5 @@
-package com.github.filipchyla.todomanager;
+package com.github.filipchyla.todomanager.security.filter;
 
-import com.github.filipchyla.todomanager.security.filter.JwtAuthenticationFilter;
 import com.github.filipchyla.todomanager.security.service.JwtService;
 import com.github.filipchyla.todomanager.user.User;
 import jakarta.servlet.FilterChain;
