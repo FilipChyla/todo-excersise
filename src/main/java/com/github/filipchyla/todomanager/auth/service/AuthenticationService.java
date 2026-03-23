@@ -3,8 +3,7 @@ package com.github.filipchyla.todomanager.auth.service;
 import com.github.filipchyla.todomanager.auth.dto.AuthenticationRequest;
 import com.github.filipchyla.todomanager.auth.dto.AuthenticationResponse;
 import com.github.filipchyla.todomanager.auth.dto.RegisterRequest;
-import com.github.filipchyla.todomanager.security.service.JwtService;
-import com.github.filipchyla.todomanager.shared.exception.DuplicateUserException;
+import com.github.filipchyla.todomanager.shared.exception.EmailTakenException;
 import com.github.filipchyla.todomanager.user.User;
 import com.github.filipchyla.todomanager.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,7 @@ public class AuthenticationService {
 
     public AuthenticationResponse register(RegisterRequest registerRequest) {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            throw new DuplicateUserException("Email is taken: " + registerRequest.getEmail());
+            throw new EmailTakenException("Email is taken: " + registerRequest.getEmail());
         }
         User newUser = new User();
         newUser.setEmail(registerRequest.getEmail());
@@ -44,10 +43,10 @@ public class AuthenticationService {
                 )
         );
 
-        var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow();
 
-        var jwtToken = jwtService.generateToken(user);
+        String jwtToken = jwtService.generateToken(user);
 
         return new AuthenticationResponse(jwtToken);
     }

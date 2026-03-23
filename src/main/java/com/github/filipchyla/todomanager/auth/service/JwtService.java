@@ -1,4 +1,4 @@
-package com.github.filipchyla.todomanager.security.service;
+package com.github.filipchyla.todomanager.auth.service;
 
 import com.github.filipchyla.todomanager.user.User;
 import io.jsonwebtoken.Claims;
