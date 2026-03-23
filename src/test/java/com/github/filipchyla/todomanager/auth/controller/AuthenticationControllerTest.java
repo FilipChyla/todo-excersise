@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -46,7 +47,7 @@ public class AuthenticationControllerTest {
     void shouldRegisterUserWhenGivenCorrectCredentials() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail("newuser@example.com");
-        request.setPassword("password123");
+        request.setPassword("Password123!");
 
         AuthenticationResponse response = new AuthenticationResponse("jwt-token");
 
@@ -60,10 +61,26 @@ public class AuthenticationControllerTest {
     }
 
     @Test
+    void shouldReturnErrorWhenCredentialsAreWrong() throws Exception {
+        RegisterRequest request = new RegisterRequest();
+        request.setEmail("newuser.com");
+        request.setPassword("password");
+
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message",containsString("email: Email should be valid")))
+                .andExpect(jsonPath("$.message",containsString("password: Password should have at least 8 characters one capital letter, one small letter, one number and one special character")));
+    }
+
+
+
+    @Test
     void shouldReturnErrorWhenEmailIsTaken() throws Exception {
         RegisterRequest request = new RegisterRequest();
         request.setEmail("newuser@example.com");
-        request.setPassword("password123");
+        request.setPassword("Password123!");
 
         when(authenticationService.register(any(RegisterRequest.class))).thenThrow(new EmailTakenException("Email is taken: " + request.getEmail()));
 

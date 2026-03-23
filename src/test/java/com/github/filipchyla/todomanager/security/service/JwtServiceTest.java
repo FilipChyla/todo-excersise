@@ -18,7 +18,7 @@ public class JwtServiceTest {
     @BeforeEach
     void setUp() {
         String testSecret = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=";
-        jwtService = new JwtService(testSecret, 900L);
+        jwtService = new JwtService(testSecret, 1000L);
 
         user = new User();
         user.setEmail("test@email.com");
