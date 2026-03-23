@@ -1,5 +1,6 @@
 package com.github.filipchyla.todomanager.auth.controller;
 
+import com.github.filipchyla.todomanager.auth.dto.AuthenticationRequest;
 import com.github.filipchyla.todomanager.auth.dto.AuthenticationResponse;
 import com.github.filipchyla.todomanager.auth.dto.RegisterRequest;
 import com.github.filipchyla.todomanager.auth.service.AuthenticationService;
@@ -16,9 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
-
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authenticationService.register(request));
+    }
+
+    @PostMapping("/authenticate")
+    public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest request){
+        return ResponseEntity.ok(authenticationService.authenticate(request));
     }
 }
