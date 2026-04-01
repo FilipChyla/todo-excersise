@@ -2,20 +2,22 @@ package com.github.filipchyla.todomanager.security.filter;
 
 import com.github.filipchyla.todomanager.auth.service.JwtService;
 import com.github.filipchyla.todomanager.user.User;
-import jakarta.servlet.FilterChain;
+import com.github.filipchyla.todomanager.user.UserRepository;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockFilterChain;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -25,70 +27,77 @@ class JwtAuthenticationFilterTest {
 
     @Mock
     private JwtService jwtService;
-
     @Mock
-    private UserDetailsService userDetailsService;
-
-    @Mock
-    private HttpServletRequest request;
-
-    @Mock
-    private HttpServletResponse response;
-
-    @Mock
-    private FilterChain filterChain;
+    private UserRepository userRepository;
 
     @InjectMocks
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    private MockHttpServletRequest request;
+    private MockHttpServletResponse response;
+    private MockFilterChain filterChain;
+
+    private final String JWT_TOKEN = "test.jwt.token";
+    private final String USER_EMAIL = "test@example.com";
+
     @BeforeEach
     void setUp() {
+        request = new MockHttpServletRequest();
+        response = new MockHttpServletResponse();
+        filterChain = spy(new MockFilterChain());
+    }
+
+    @AfterEach
+    void tearDown() {
         SecurityContextHolder.clearContext();
     }
 
-    @Test
-    void shouldAuthenticateValidToken() throws ServletException, IOException {
-        String token = "valid.jwt.token";
-        String username = "testuser";
+    private void createAndMockUser(boolean isValid) {
         User user = new User();
-        user.setEmail(username);
+        user.setEmail(USER_EMAIL);
 
-        when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtService.extractUsername(token)).thenReturn(username);
-        when(userDetailsService.loadUserByUsername(username)).thenReturn(user);
-        when(jwtService.isTokenValid(token, user)).thenReturn(true);
+        when(jwtService.extractUsername(JWT_TOKEN)).thenReturn(USER_EMAIL);
+        when(userRepository.findByEmail(USER_EMAIL)).thenReturn(Optional.of(user));
+        when(jwtService.isTokenValid(JWT_TOKEN, user)).thenReturn(isValid);
+    }
 
+
+    @Test
+    void givenValidToken_whenDoFilter_thenAuthenticateUser() throws ServletException, IOException {
+        //Arrange
+        createAndMockUser(true);
+        request.addHeader("Authorization", "Bearer " + JWT_TOKEN);
+
+        //Act
         jwtAuthenticationFilter.doFilter(request, response, filterChain);
 
-        assertNotNull(SecurityContextHolder.getContext().getAuthentication());
-        assertEquals(username, SecurityContextHolder.getContext().getAuthentication().getName());
+        //Assert
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        assertNotNull(auth);
+        assertEquals(USER_EMAIL, auth.getName());
         verify(filterChain).doFilter(request, response);
     }
 
     @Test
-    void shouldNotAuthenticateWithoutToken() throws ServletException, IOException {
-        when(request.getHeader("Authorization")).thenReturn(null);
-
+    void givenNoAuthorizationHeader_whenDoFilter_thenDoNotAuthenticate() throws ServletException, IOException {
+        //Act
         jwtAuthenticationFilter.doFilter(request, response, filterChain);
 
+        //Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain).doFilter(request, response);
     }
 
     @Test
-    void shouldNotAuthenticateInvalidToken() throws ServletException, IOException {
-        String token = "invalid.jwt.token";
-        String username = "testuser";
-        User user = new User();
-        user.setEmail(username);
+    void givenInvalidToken_whenDoFilter_thenDoNotAuthenticate() throws ServletException, IOException {
+        //Arrange
+        createAndMockUser(false);
+        request.addHeader("Authorization", "Bearer " + JWT_TOKEN);
 
-        when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtService.extractUsername(token)).thenReturn(username);
-        when(userDetailsService.loadUserByUsername(username)).thenReturn(user);
-        when(jwtService.isTokenValid(token, user)).thenReturn(false);
-
+        //Act
         jwtAuthenticationFilter.doFilter(request, response, filterChain);
 
+        //Assert
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain).doFilter(request, response);
     }
