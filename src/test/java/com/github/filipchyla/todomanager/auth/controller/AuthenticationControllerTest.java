@@ -6,6 +6,7 @@ import com.github.filipchyla.todomanager.auth.dto.RegisterRequest;
 import com.github.filipchyla.todomanager.auth.service.AuthenticationService;
 import com.github.filipchyla.todomanager.auth.service.JwtService;
 import com.github.filipchyla.todomanager.shared.exception.EmailTakenException;
+import com.github.filipchyla.todomanager.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -43,83 +44,83 @@ public class AuthenticationControllerTest {
     @MockitoBean
     private AuthenticationService authenticationService;
 
+    @MockitoBean
+    private UserRepository userRepository;
+
+    private static final String VALID_EMAIL = "newuser@example.com";
+    private static final String VALID_PASSWORD = "Password123!";
+    private static final String INVALID_EMAIL = "newuser.com";
+    private static final String INVALID_PASSWORD = "password";
+
     @Test
     void shouldRegisterUserWhenGivenCorrectCredentials() throws Exception {
-        RegisterRequest request = new RegisterRequest();
-        request.setEmail("newuser@example.com");
-        request.setPassword("Password123!");
-
+        //Arrange
+        RegisterRequest request = new RegisterRequest(VALID_EMAIL, VALID_PASSWORD);
         AuthenticationResponse response = new AuthenticationResponse("jwt-token");
-
         when(authenticationService.register(any(RegisterRequest.class))).thenReturn(response);
 
+        //Act & Assert
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("jwt-token"));
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.token").value("jwt-token"));
     }
 
     @Test
     void shouldReturnErrorWhenCredentialsAreWrong() throws Exception {
-        RegisterRequest request = new RegisterRequest();
-        request.setEmail("newuser.com");
-        request.setPassword("password");
+        //Arrange
+        RegisterRequest request = new RegisterRequest(INVALID_EMAIL,INVALID_PASSWORD);
 
+        //Act & Assert
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message",containsString("email: Email should be valid")))
-                .andExpect(jsonPath("$.message",containsString("password: Password should have at least 8 characters one capital letter, one small letter, one number and one special character")));
+                        .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.message",containsString("email: Email should be valid")))
+                        .andExpect(jsonPath("$.message",containsString("password: Password should have at least 8 characters one capital letter, one small letter, one number and one special character")));
     }
-
-
 
     @Test
     void shouldReturnErrorWhenEmailIsTaken() throws Exception {
-        RegisterRequest request = new RegisterRequest();
-        request.setEmail("newuser@example.com");
-        request.setPassword("Password123!");
-
+        //Arrange
+        RegisterRequest request = new RegisterRequest(VALID_EMAIL,VALID_PASSWORD);
         when(authenticationService.register(any(RegisterRequest.class))).thenThrow(new EmailTakenException("Email is taken: " + request.getEmail()));
 
+        //Act & Assert
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("Email is taken: " + request.getEmail()));
+                        .andExpect(status().isConflict())
+                        .andExpect(jsonPath("$.message").value("Email is taken: " + request.getEmail()));
     }
 
     @Test
     void shouldAuthenticateUserWhenGivenCorrectCredentials() throws Exception {
-        AuthenticationRequest request = new AuthenticationRequest();
-        request.setEmail("newuser@example.com");
-        request.setPassword("password123");
-
+        //Arrange
+        AuthenticationRequest request = new AuthenticationRequest(VALID_EMAIL, VALID_PASSWORD);
         AuthenticationResponse response = new AuthenticationResponse("jwt-token");
-
         when(authenticationService.authenticate(any(AuthenticationRequest.class))).thenReturn(response);
 
+        //Act & Assert
         mockMvc.perform(post("/api/auth/authenticate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("jwt-token"));
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.token").value("jwt-token"));
     }
 
     @Test
     void shouldGetErrorWhenCredentialsAreIncorrect() throws Exception {
-        AuthenticationRequest request = new AuthenticationRequest();
-        request.setEmail("newuser@example.com");
-        request.setPassword("password123");
-
+        //Arrange
+        AuthenticationRequest request = new AuthenticationRequest(VALID_EMAIL, INVALID_PASSWORD);
         when(authenticationService.authenticate(any(AuthenticationRequest.class))).thenThrow(new BadCredentialsException("Incorrect credentials"));
 
+        //Act & Assert
         mockMvc.perform(post("/api/auth/authenticate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value("Incorrect credentials"));
+                        .andExpect(status().isUnauthorized())
+                        .andExpect(jsonPath("$.message").value("Incorrect credentials"));
     }
 }
