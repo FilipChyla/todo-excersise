@@ -27,40 +27,49 @@ public class JwtServiceTest {
 
     @Test
     void shouldGenerateToken() {
+        //Act
         String token = jwtService.generateToken(user);
 
+        //Assert
         assertNotNull(token);
         assertFalse(token.isEmpty());
     }
 
     @Test
     void shouldExtractUsernameFromToken() {
+        //Arrange & Act
         String token = jwtService.generateToken(user);
         String email = jwtService.extractUsername(token);
 
+        //Assert
         assertEquals("test@email.com", email);
     }
 
     @Test
     void shouldInvalidateTokenForDifferentUser() {
+        //Arrange & Act
         String token = jwtService.generateToken(user);
         User differentUser = new User();
         differentUser.setEmail("different@mail.com");
 
+        //Assert
         assertFalse(jwtService.isTokenValid(token, differentUser));
     }
 
     @Test
     void shouldThrowExceptionForInvalidToken() {
+        //Act & Assert
         assertThrows(MalformedJwtException.class, () -> jwtService.extractUsername("invalid.token.here"));
     }
 
     @Test
     void shouldDetectExpiredToken() throws InterruptedException {
+        //Arrange
         String token = jwtService.generateToken(user);
 
         Thread.sleep(1000);
 
+        //Act & Assert
         assertThrows(ExpiredJwtException.class, () -> jwtService.isTokenValid(token, user));
     }
 }
