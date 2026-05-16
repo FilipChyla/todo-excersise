@@ -58,7 +58,7 @@ public class AuthenticationServiceTest {
         authenticationRequest = new AuthenticationRequest(userEmail, userPassword);
 
         user = new User();
-        user.setUuid(UUID.randomUUID());
+        user.setId(UUID.randomUUID());
         user.setEmail(userEmail);
         user.setPassword(userPassword);
     }

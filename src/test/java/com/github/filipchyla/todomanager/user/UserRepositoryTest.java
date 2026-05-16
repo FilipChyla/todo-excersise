@@ -64,6 +64,6 @@ public class UserRepositoryTest {
 
         // Assert
         assertEquals(user.getEmail(), foundUser.getEmail());
-        assertNotNull(foundUser.getUuid());
+        assertNotNull(foundUser.getId());
     }
 }
