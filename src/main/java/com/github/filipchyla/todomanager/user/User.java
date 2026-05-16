@@ -24,7 +24,7 @@ public class User implements UserDetails {
     @GeneratedValue
     @UuidGenerator(style = UuidGenerator.Style.TIME)
     @Column(name = "id", updatable = false, nullable = false)
-    private UUID uuid;
+    private UUID id;
 
     @Column(nullable = false, unique = true)
     private String email;
