@@ -37,9 +37,7 @@ public class TaskService {
                 () -> new ResourceNotFoundException("User not found with email: " + user.getEmail()));
         newTask.setOwner(owner);
 
-        taskRepository.save(newTask);
-
-        return mapToTaskInfoDto(newTask);
+        return mapToTaskInfoDto(taskRepository.save(newTask));
     }
 
     @Transactional

@@ -72,12 +72,22 @@ public class TaskServiceTest {
             //Arrange
             when(userRepository.findByEmail(USER_EMAIL)).thenReturn(Optional.of(user));
 
+            task.setDescription(TASK_DESCRIPTION);
+            task.setDueTo(TASK_DUE_DATE);
+            task.setDone(false);
+            task.setCreatedAt(TASK_CREATION);
+            when(taskRepository.save(any(Task.class))).thenReturn(task);
+
             //Act
             TaskInfoDto taskInfoDto = taskService.createTask(creationDto, user);
 
             //Assert
             assertThat(taskInfoDto.getDescription()).isEqualTo(TASK_DESCRIPTION);
             assertThat(taskInfoDto.getDueTo()).isEqualTo(TASK_DUE_DATE);
+            assertThat(taskInfoDto.isDone()).isFalse();
+            assertThat(taskInfoDto.getOwnerId()).isEqualTo(USER_ID);
+            assertThat(taskInfoDto.getTimestamp()).isEqualTo(TASK_CREATION);
+            assertThat(taskInfoDto.getId()).isEqualTo(TASK_ID);
             verify(taskRepository, times(1)).save(any(Task.class));
         }
 
@@ -145,6 +155,19 @@ public class TaskServiceTest {
             assertThatThrownBy(() -> taskService.getTask(TASK_ID, user))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessageContaining("Task with ID");
+        }
+
+        @Test
+        void shouldReturnAllTasksIfUserHasAccess(){
+            //Arrange
+            when(taskRepository.findByOwnerEmail(user.getEmail())).thenReturn(java.util.List.of(task));
+
+            //Act
+            java.util.List<TaskInfoDto> taskInfoDtos = taskService.getAllTasks(user);
+
+            //Assert
+            assertThat(taskInfoDtos.size()).isEqualTo(1);
+            assertThat(taskInfoDtos.getFirst().getId()).isEqualTo(TASK_ID);
         }
     }
 
@@ -230,7 +253,7 @@ public class TaskServiceTest {
             taskService.deleteTaskById(TASK_ID, user);
 
             //Assert
-            verify(taskRepository, times(1)).delete(any(Task.class));
+            verify(taskRepository, times(1)).deleteById(TASK_ID);
             verify(taskRepository, never()).save(any(Task.class));
         }
 
