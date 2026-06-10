@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied() {
         ErrorResponse error = new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.FORBIDDEN.value(),
                 "Access denied",
                 System.currentTimeMillis()
         );
