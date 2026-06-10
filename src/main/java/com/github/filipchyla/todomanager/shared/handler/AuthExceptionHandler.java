@@ -43,14 +43,4 @@ public class AuthExceptionHandler {
                 .collect(Collectors.toList());
         return ResponseEntity.badRequest().body(new ErrorResponse(400, String.join(", ", errors), System.currentTimeMillis()));
     }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneralException() {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "An unexpected error occurred",
-                System.currentTimeMillis()
-        );
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
 }
