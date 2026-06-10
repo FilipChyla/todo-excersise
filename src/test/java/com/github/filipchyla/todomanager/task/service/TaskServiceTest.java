@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -231,6 +232,15 @@ public class TaskServiceTest {
             //Assert
             verify(taskRepository, times(1)).delete(any(Task.class));
             verify(taskRepository, never()).save(any(Task.class));
+        }
+
+        @Test
+        void shouldNotThrowWhenUserHasAccessAndTaskDoesNotExists(){
+            when(taskRepository.findById(TASK_ID)).thenReturn(Optional.empty());
+
+            assertDoesNotThrow(() -> taskService.deleteTaskById(TASK_ID, user));
+
+            verify(taskRepository, never()).deleteById(any());
         }
     }
 }

@@ -55,8 +55,12 @@ public class TaskService {
 
     @Transactional
     public void deleteTaskById(UUID id, User user) {
-        Task task = getTaskIfUserHasAccessElseThrow(id, user);
-        taskRepository.delete(task);
+        taskRepository.findById(id).ifPresent(task -> {
+            if (!task.getOwner().getEmail().equals(user.getEmail())) {
+                throw new AccessDeniedException("You don't have access to this task");
+            }
+            taskRepository.deleteById(id);
+        });
     }
 
     @Transactional(readOnly = true)
