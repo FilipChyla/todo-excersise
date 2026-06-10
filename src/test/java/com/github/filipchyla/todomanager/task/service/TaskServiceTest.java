@@ -149,11 +149,59 @@ public class TaskServiceTest {
 
     @Nested
     class UpdateTaskTests{
+        final String NEW_TASK_DESCRIPTION = "New task description";
+        final LocalDateTime NEW_TASK_DUE_DATE = LocalDateTime.of(2027, 12, 31, 23, 59);
+
+        @BeforeEach
+        void setUp() {
+            task.setDescription(TASK_DESCRIPTION);
+            task.setDueTo(TASK_DUE_DATE);
+            task.setDone(false);
+        }
 
         @Test
-        void shouldUpdateTaskIfUserHasAccess(){
+        void shouldUpdateOnlyDueToInTaskIfUserHasAccess(){
             //Arrange
-            TaskUpdateDto updateDto = new TaskUpdateDto(TASK_DESCRIPTION, TASK_DUE_DATE);
+            TaskUpdateDto updateDto = new TaskUpdateDto();
+            updateDto.setDueTo(NEW_TASK_DUE_DATE);
+
+            when(taskRepository.findById(TASK_ID)).thenReturn(Optional.of(task));
+
+            //Act
+            TaskInfoDto taskInfo = taskService.updateTask(TASK_ID, updateDto, user);
+
+            //Assert
+            assertThat(taskInfo.getDescription()).isEqualTo(TASK_DESCRIPTION);
+            assertThat(taskInfo.getDueTo()).isEqualTo(NEW_TASK_DUE_DATE);
+            assertThat(taskInfo.isDone()).isFalse();
+
+            verify(taskRepository, never()).save(any(Task.class));
+        }
+
+        @Test
+        void shouldUpdateOnlyDescriptionIfUserHasAccess(){
+            //Arrange
+            TaskUpdateDto updateDto = new TaskUpdateDto();
+            updateDto.setDescription(NEW_TASK_DESCRIPTION);
+
+            when(taskRepository.findById(TASK_ID)).thenReturn(Optional.of(task));
+
+            //Act
+            TaskInfoDto taskInfo = taskService.updateTask(TASK_ID, updateDto, user);
+
+            //Assert
+            assertThat(taskInfo.getDescription()).isEqualTo(NEW_TASK_DESCRIPTION);
+            assertThat(taskInfo.getDueTo()).isEqualTo(TASK_DUE_DATE);
+            assertThat(taskInfo.isDone()).isFalse();
+
+            verify(taskRepository, never()).save(any(Task.class));
+        }
+
+        @Test
+        void shouldUpdateOnlyCompletionInTaskIfUserHasAccess(){
+            //Arrange
+            TaskUpdateDto updateDto = new TaskUpdateDto();
+            updateDto.setIsDone(true);
 
             when(taskRepository.findById(TASK_ID)).thenReturn(Optional.of(task));
 
@@ -163,41 +211,7 @@ public class TaskServiceTest {
             //Assert
             assertThat(taskInfo.getDescription()).isEqualTo(TASK_DESCRIPTION);
             assertThat(taskInfo.getDueTo()).isEqualTo(TASK_DUE_DATE);
-
-            assertThat(task.getDescription()).isEqualTo(taskInfo.getDescription());
-            assertThat(task.getDueTo()).isEqualTo(taskInfo.getDueTo());
-
-            verify(taskRepository, never()).save(any(Task.class));
-        }
-
-        @Test
-        void shouldChangeCompletionToFalseIfUserHasAccess(){
-            //Arrange
-            task.setDone(true);
-
-            when(taskRepository.findById(TASK_ID)).thenReturn(Optional.of(task));
-
-            //Act
-            TaskInfoDto taskInfo = taskService.changeCompletion(TASK_ID, false, user);
-
-            //Assert
-            assertThat(taskInfo.isDone()).isFalse();
-            assertThat(task.isDone()).isFalse();
-
-            verify(taskRepository, never()).save(any(Task.class));
-        }
-
-        @Test
-        void shouldChangeCompletionToTrueIfUserHasAccess(){
-            //Arrange
-            when(taskRepository.findById(TASK_ID)).thenReturn(Optional.of(task));
-
-            //Act
-            TaskInfoDto taskInfo = taskService.changeCompletion(TASK_ID, true, user);
-
-            //Assert
             assertThat(taskInfo.isDone()).isTrue();
-            assertThat(task.isDone()).isTrue();
 
             verify(taskRepository, never()).save(any(Task.class));
         }

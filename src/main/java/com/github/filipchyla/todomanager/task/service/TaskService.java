@@ -45,16 +45,10 @@ public class TaskService {
     @Transactional
     public TaskInfoDto updateTask(UUID taskId,TaskUpdateDto updateInfo, User user) {
         Task task = getTaskIfUserHasAccessElseThrow(taskId, user);
-        task.setDescription(updateInfo.getDescription());
-        task.setDueTo(updateInfo.getDueTo());
 
-        return mapToTaskInfoDto(task);
-    }
-
-    @Transactional
-    public TaskInfoDto changeCompletion(UUID id, boolean isDone, User user) {
-        Task task = getTaskIfUserHasAccessElseThrow(id, user);
-        task.setDone(isDone);
+        if (updateInfo.getDescription() != null) task.setDescription(updateInfo.getDescription());
+        if (updateInfo.getDueTo() != null)       task.setDueTo(updateInfo.getDueTo());
+        if (updateInfo.getIsDone() != null)      task.setDone(updateInfo.getIsDone());
 
         return mapToTaskInfoDto(task);
     }
